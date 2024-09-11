@@ -78,10 +78,9 @@ int main(int argc, char **argv)
   // Load image from file
   read_bitmap(argv[1], input_image);
 
-  // Run inversion
-  invert(input_image, output_image);
-  greyscale(input_image);
-  output_from_greyscale(processed_image);
+  rgb_to_greyscale(input_image, processed_image);
+
+  greyscale_to_rgb(processed_image, output_image);
   // Save image to file
   write_bitmap(output_image, argv[2]);
 
