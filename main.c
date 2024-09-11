@@ -6,23 +6,15 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <string.h>
 #include "cbmp.h"
 #define THRESHOLD 96
+#define SE_SIZE 3
 
-// Function to invert pixels of an image (negative)
-void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS])
-{
-  for (int x = 0; x < BMP_WIDTH; x++)
-  {
-    for (int y = 0; y < BMP_HEIGHT; y++)
-    {
-      for (int c = 0; c < BMP_CHANNELS; c++)
-      {
-        output_image[x][y][c] = 255 - input_image[x][y][c];
-      }
-    }
-  }
-}
+unsigned char SE[SE_SIZE][SE_SIZE] = {
+    {0, 1, 0},
+    {1, 1, 1},
+    {0, 1, 0}};
 
 void rgb_to_greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
@@ -65,6 +57,75 @@ void apply_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
   }
 }
 
+void remove_edges(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  for (int x = 0; x < SE_SIZE / 2; x++)
+  {
+    for (int y = 0; y < BMP_HEIGHT; y++)
+    {
+      processed_image[x][y] = 0;
+      processed_image[BMP_WIDTH - 1 - x][y] = 0;
+    }
+  }
+
+  for (int x = 0; x < BMP_WIDTH; x++)
+  {
+    for (int y = 0; y < SE_SIZE / 2; y++)
+    {
+      processed_image[x][y] = 0;
+      processed_image[x][BMP_HEIGHT - 1 - y] = 0;
+    }
+  }
+}
+
+int erode_pixel(int x, int y, unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  unsigned char pixel = cloned_image[x][y];
+
+  // Can't erode black pixel
+  if (!pixel)
+    return 0;
+
+  for (int i = 0; i < SE_SIZE; i++)
+  {
+    for (int j = 0; j < SE_SIZE; j++)
+    {
+      // Do nothing if SE pixel is 0
+      if (!SE[i][j])
+        continue;
+
+      // SE pixel is 1
+      // Check if matching pixel in image is also 1
+      if (cloned_image[x - (SE_SIZE / 2) + i][y - (SE_SIZE / 2) + j])
+        continue;
+
+      // They weren't both white. Erode original pixel
+      processed_image[x][y] = 0;
+      return 1;
+    }
+  }
+  // Didn't erode anything
+  return 0;
+}
+
+int erode(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  int eroded;
+
+  // Copy image before eroding processed_image
+  unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT];
+  memcpy(cloned_image, processed_image, sizeof(cloned_image));
+
+  for (int x = SE_SIZE / 2; x < BMP_WIDTH - SE_SIZE / 2; x++)
+  {
+    for (int y = SE_SIZE / 2; y < BMP_HEIGHT - SE_SIZE / 2; y++)
+    {
+      eroded += erode_pixel(x, y, processed_image, cloned_image);
+    }
+  }
+  return eroded;
+}
+
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
@@ -93,6 +154,11 @@ int main(int argc, char **argv)
 
   // Do stuff
   apply_threshold(processed_image);
+  remove_edges(processed_image);
+  for (int i = 0; i < 10; i++)
+  {
+    erode(processed_image);
+  }
 
   // Save image to file
   greyscale_to_rgb(processed_image, output_image);
