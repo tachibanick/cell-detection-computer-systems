@@ -9,16 +9,16 @@
 #include "cbmp.h"
 
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
-unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-unsigned char processed_image[BMP_WIDTH][BMP_HEIGTH];
+unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
+unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
+unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT];
 
 // Function to invert pixels of an image (negative)
-void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
+void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
-    for (int y = 0; y < BMP_HEIGTH; y++)
+    for (int y = 0; y < BMP_HEIGHT; y++)
     {
       for (int c = 0; c < BMP_CHANNELS; c++)
       {
@@ -28,11 +28,11 @@ void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS], unsi
   }
 }
 
-void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
+void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
-    for (int y = 0; y < BMP_HEIGTH; y++)
+    for (int y = 0; y < BMP_HEIGHT; y++)
     {
       unsigned char *pixel = input_image[x][y];
       char avg_color = (pixel[0] + pixel[1] + pixel[2]) / 3;
@@ -44,11 +44,11 @@ void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
   }
 }
 
-void output_from_greyscale(unsigned char processed_image[BMP_WIDTH][BMP_HEIGTH])
+void output_from_greyscale(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
-    for (int y = 0; y < BMP_HEIGTH; y++)
+    for (int y = 0; y < BMP_HEIGHT; y++)
     {
       for (int c = 0; c < BMP_CHANNELS; c++)
       {
