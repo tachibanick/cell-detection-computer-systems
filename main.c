@@ -111,7 +111,7 @@ int erode_pixel(int x, int y, unsigned char processed_image[BMP_WIDTH][BMP_HEIGH
 
 int erode(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
-  int eroded;
+  int eroded = 0;
 
   // Copy image before eroding processed_image
   unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT];
