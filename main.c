@@ -1,8 +1,8 @@
 // To compile (linux/mac): gcc cbmp.c main.c -o main.out -std=c99
-// To run (linux/mac): ./main.out example.bmp example_inv.bmp
+// To run (linux/mac): ./main.out example.bmp example_out.bmp
 
 // To compile (win): gcc cbmp.c main.c -o main.exe -std=c99
-// To run (win): main.exe example.bmp example_inv.bmp
+// To run (win): main.exe example.bmp example_out.bmp
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -29,7 +29,7 @@ void rgb_to_greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANN
   {
     for (int y = 0; y < BMP_HEIGHT; y++)
     {
-      unsigned char pixel[BMP_CHANNELS] = input_image[x][y];
+      unsigned char *pixel = input_image[x][y];
       unsigned char avg_color = (pixel[0] + pixel[1] + pixel[2]) / 3;
       for (int c = 0; c < BMP_CHANNELS; c++)
       {
