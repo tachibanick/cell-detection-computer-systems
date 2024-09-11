@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "cbmp.h"
+#define THRESHOLD 96
 
 // Function to invert pixels of an image (negative)
 void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS])
@@ -53,6 +54,17 @@ void greyscale_to_rgb(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsi
   }
 }
 
+void apply_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  for (int x = 0; x < BMP_WIDTH; x++)
+  {
+    for (int y = 0; y < BMP_HEIGHT; y++)
+    {
+      processed_image[x][y] = processed_image[x][y] > THRESHOLD ? 255 : 0;
+    }
+  }
+}
+
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
@@ -77,11 +89,13 @@ int main(int argc, char **argv)
 
   // Load image from file
   read_bitmap(argv[1], input_image);
-
   rgb_to_greyscale(input_image, processed_image);
 
-  greyscale_to_rgb(processed_image, output_image);
+  // Do stuff
+  apply_threshold(processed_image);
+
   // Save image to file
+  greyscale_to_rgb(processed_image, output_image);
   write_bitmap(output_image, argv[2]);
 
   printf("Done!\n");
