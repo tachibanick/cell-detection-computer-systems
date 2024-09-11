@@ -1,0 +1,4 @@
+# Ignore .exe, ds_store, and .out files
+*.exe
+.DS_Store
+*.out
