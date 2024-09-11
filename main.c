@@ -10,6 +10,7 @@
 #include "cbmp.h"
 #define THRESHOLD 96
 #define SE_SIZE 3
+#define PRECISION 12
 
 unsigned char SE[SE_SIZE][SE_SIZE] = {
     {0, 1, 0},
@@ -126,6 +127,54 @@ int erode(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
   return eroded;
 }
 
+void remove_s(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
+{
+  for (int x = 0; x < PRECISION; x++)
+  {
+    for (int y = 0; y < PRECISION; y++)
+    {
+      processed_image[x0 - PRECISION / 2 + x][y0 - PRECISION / 2 + y] = 0;
+    }
+  }
+}
+
+int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
+{
+  for (int x = x0 - PRECISION / 2; x < x0 + PRECISION / 2; x++)
+  {
+    if (processed_image[x][y0 - PRECISION / 2] || processed_image[x][y0 + PRECISION / 2])
+      return 1;
+  }
+  for (int y = y0 - PRECISION / 2; y < y0 + PRECISION / 2; y++)
+  {
+    if (processed_image[x0 - PRECISION / 2][y] || processed_image[x0 + PRECISION / 2][y])
+      return 1;
+  }
+  return 0;
+}
+
+void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  for (int x = (PRECISION / 2) + 1; x < (BMP_WIDTH - (PRECISION / 2) - 1); x++)
+  {
+    for (int y = (PRECISION / 2) + 1; y < (BMP_HEIGHT - (PRECISION / 2) - 1); y++)
+    {
+      if (processed_image[x][y])
+      {
+        if (detect_around(processed_image, x, y))
+        {
+          continue;
+        }
+        else
+        {
+          remove_s(processed_image, x, y);
+          printf("%d %d", x, y);
+        }
+      }
+    }
+  }
+}
+
 // Declaring the array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
@@ -155,9 +204,9 @@ int main(int argc, char **argv)
   // Do stuff
   apply_threshold(processed_image);
   remove_edges(processed_image);
-  for (int i = 0; i < 10; i++)
+  while (erode(processed_image) != 0)
   {
-    erode(processed_image);
+    detect(processed_image);
   }
 
   // Save image to file
