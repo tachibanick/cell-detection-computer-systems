@@ -12,6 +12,8 @@
 #define SE_SIZE 3
 #define PRECISION 12
 
+int cell_positions[400][2] = {0};
+
 unsigned char SE[SE_SIZE][SE_SIZE] = {
     {0, 1, 0},
     {1, 1, 1},
@@ -127,7 +129,7 @@ int erode(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
   return eroded;
 }
 
-void remove_s(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
+void remove_cell(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
 {
   for (int x = 0; x < PRECISION; x++)
   {
@@ -167,10 +169,25 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
         }
         else
         {
-          remove_s(processed_image, x, y);
-          printf("%d %d", x, y);
+          remove_cell(processed_image, x, y);
+          cell_positions[0][0] += 1;
+          cell_positions[cell_positions[0][0]][0] = x;
+          cell_positions[cell_positions[0][0]][1] = y;
         }
       }
+    }
+  }
+}
+
+void draw_x(unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], int x0, int y0)
+{
+  for (int x = -5; x < 5; x++)
+  {
+    for (int y = -5; y < 5; y++)
+    {
+      output_image[x0 + x][y0 + y][0] = 255;
+      output_image[x0 + x][y0 + y][1] = 128;
+      output_image[x0 + x][y0 + y][2] = 0;
     }
   }
 }
@@ -210,9 +227,13 @@ int main(int argc, char **argv)
   }
 
   // Save image to file
-  greyscale_to_rgb(processed_image, output_image);
-  write_bitmap(output_image, argv[2]);
+  for (int i = 1; i <= cell_positions[0][0]; i++)
+  {
+    draw_x(input_image, cell_positions[i][0], cell_positions[i][1]);
+  }
+  write_bitmap(input_image, argv[2]);
 
+  printf("%d cells found \n", cell_positions[0][0]);
   printf("Done!\n");
   return 0;
 }
