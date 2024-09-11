@@ -8,11 +8,6 @@
 #include <stdio.h>
 #include "cbmp.h"
 
-// Declaring the array to store the image (unsigned char = unsigned 8 bit)
-unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
-unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
-unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT];
-
 // Function to invert pixels of an image (negative)
 void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS])
 {
@@ -28,14 +23,14 @@ void invert(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], unsi
   }
 }
 
-void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS])
+void rgb_to_greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
     for (int y = 0; y < BMP_HEIGHT; y++)
     {
-      unsigned char *pixel = input_image[x][y];
-      char avg_color = (pixel[0] + pixel[1] + pixel[2]) / 3;
+      unsigned char pixel[BMP_CHANNELS] = input_image[x][y];
+      unsigned char avg_color = (pixel[0] + pixel[1] + pixel[2]) / 3;
       for (int c = 0; c < BMP_CHANNELS; c++)
       {
         processed_image[x][y] = avg_color;
@@ -44,7 +39,7 @@ void greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS])
   }
 }
 
-void output_from_greyscale(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+void greyscale_to_rgb(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS])
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
@@ -57,6 +52,11 @@ void output_from_greyscale(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
     }
   }
 }
+
+// Declaring the array to store the image (unsigned char = unsigned 8 bit)
+unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
+unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
+unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT];
 
 // Main function
 int main(int argc, char **argv)
