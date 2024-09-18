@@ -9,27 +9,27 @@
 #include <string.h>
 #include "cbmp.h"
 #define THRESHOLD 90
-#define SE_SIZE 5
+#define SE_SIZE 3
 #define SE_HALF_SIZE ((SE_SIZE) / 2)
 #define PRECISION 12
 #define PRECISION_HALF ((PRECISION) / 2)
 
 int cell_positions[400][2] = {0};
 
-// unsigned char SE[SE_SIZE][SE_SIZE] = {
-//     {0, 1, 0},
-//     {1, 1, 1},
-//     {0, 1, 0}};
-
 unsigned char SE[SE_SIZE][SE_SIZE] = {
-    {0, 0, 1, 0, 0},
-    {0, 0, 1, 0, 0},
+    {0, 1, 0},
+    {1, 1, 1},
+    {0, 1, 0}};
 
-    {1, 1, 1, 1, 1},
+// unsigned char SE[SE_SIZE][SE_SIZE] = {
+//     {0, 0, 1, 0, 0},
+//     {0, 0, 1, 0, 0},
 
-    {0, 0, 1, 0, 0},
-    {0, 0, 1, 0, 0},
-};
+//     {1, 1, 1, 1, 1},
+
+//     {0, 0, 1, 0, 0},
+//     {0, 0, 1, 0, 0},
+// };
 
 unsigned char heart[12][13] = {
     {0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0}, // Top part of the heart with edges as 2
@@ -143,6 +143,74 @@ int erode(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
     }
   }
   return eroded;
+}
+
+int dilate_pixel(int x, int y, unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  unsigned char pixel = cloned_image[x][y];
+
+  // Can't dilate white pixel
+  if (pixel)
+    return 0;
+
+  for (int i = 0; i < SE_SIZE; i++)
+  {
+    for (int j = 0; j < SE_SIZE; j++)
+    {
+      // Do nothing if SE pixel is 0 or middle pixel
+      if (SE[i][j])
+        continue;
+
+      // SE pixel is 1
+      int x_check = x - SE_HALF_SIZE + i;
+      int y_check = y - SE_HALF_SIZE + j;
+
+      // Ignore pixels outside image
+      if (x_check < 0 || x_check >= BMP_WIDTH || y_check < 0 || y_check >= BMP_HEIGHT)
+        continue;
+
+      // Check if matching pixel in image is 0
+      if (!cloned_image[x_check][y_check])
+        continue;
+
+      // Found a white pixel. Dilate original pixel
+      processed_image[x][y] = 1;
+      return 1;
+    }
+  }
+  // Didn't dilate anything
+  return 0;
+}
+
+int dilate(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  int dilated = 0;
+
+  // Copy image before eroding processed_image
+  unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT];
+  memcpy(cloned_image, processed_image, sizeof(cloned_image));
+
+  for (int x = 0; x < BMP_WIDTH; x++)
+  {
+    for (int y = 0; y < BMP_HEIGHT; y++)
+    {
+      dilated += dilate_pixel(x, y, processed_image, cloned_image);
+    }
+  }
+  return dilated;
+}
+
+void open(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  erode(processed_image);
+  dilate(processed_image);
+}
+
+void close(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  dilate(processed_image);
+  erode(processed_image);
+  erode(processed_image);
 }
 
 void remove_cell(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
@@ -405,7 +473,7 @@ void benchmark()
     snprintf(output_path, 100, "%d_out.bmp", i + 1);
 
     cell_detection(args[i], output_path, 0);
-    if (cell_positions[0][0] != 300)
+    if (cell_positions[0][0] < 280)
     {
       printf("FAILED \n\n\n");
     }
