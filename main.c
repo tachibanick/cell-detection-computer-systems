@@ -166,6 +166,7 @@ void remove_cell(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, i
 
 int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
 {
+  int around = 0;
   for (int x = x0 - PRECISION_HALF - 1; x < x0 + PRECISION_HALF + 1; x++)
   {
     // Skip if outside image
@@ -174,12 +175,12 @@ int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, 
 
     if (!(y0 - PRECISION_HALF < 0) && processed_image[x][y0 - PRECISION_HALF])
     {
-      return 1;
+      around++;
     }
 
     if (!(y0 + PRECISION_HALF >= BMP_HEIGHT) && processed_image[x][y0 + PRECISION_HALF])
     {
-      return 1;
+      around++;
     }
   }
   for (int y = y0 - PRECISION_HALF - 1; y < y0 + PRECISION_HALF + 1; y++)
@@ -189,12 +190,12 @@ int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, 
       continue;
 
     if (!(x0 - PRECISION_HALF < 0) && processed_image[x0 - PRECISION_HALF][y])
-      return 1;
+      around++;
 
     if (!(x0 + PRECISION_HALF >= BMP_WIDTH) && processed_image[x0 + PRECISION_HALF][y])
-      return 1;
+      around++;
   }
-  return 0;
+  return around;
 }
 
 void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
@@ -267,9 +268,9 @@ void draw_heart(unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS],
           output_image[global_x][global_y][2] = 255;
           break;
         case 4:
-          output_image[global_x][global_y][0] = 55;
-          output_image[global_x][global_y][1] = 0;
-          output_image[global_x][global_y][2] = 0;
+          output_image[global_x][global_y][0] = 140;
+          output_image[global_x][global_y][1] = 25;
+          output_image[global_x][global_y][2] = 35;
         default:
           break;
         }
