@@ -159,9 +159,9 @@ int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, 
 
 void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
-  for (int x = (PRECISION_HALF) + 1; x < (BMP_WIDTH - (PRECISION_HALF)-1); x++)
+  for (int x = PRECISION_HALF; x < (BMP_WIDTH - PRECISION_HALF); x++)
   {
-    for (int y = (PRECISION_HALF) + 1; y < (BMP_HEIGHT - (PRECISION_HALF)-1); y++)
+    for (int y = PRECISION_HALF; y < (BMP_HEIGHT - PRECISION_HALF); y++)
     {
       if (processed_image[x][y])
       {
