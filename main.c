@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "cbmp.h"
-#define THRESHOLD 96
+#define THRESHOLD 90
 #define SE_SIZE 3
 #define SE_HALF_SIZE ((SE_SIZE) / 2)
 #define PRECISION 12
