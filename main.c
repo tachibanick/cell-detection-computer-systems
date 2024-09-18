@@ -129,8 +129,16 @@ void remove_cell(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, i
 {
   for (int x = 0; x < PRECISION; x++)
   {
+    // Skip if outside image
+    if (x0 - PRECISION_HALF + x < 0 || x0 - PRECISION_HALF + x >= BMP_WIDTH)
+      continue;
+
     for (int y = 0; y < PRECISION; y++)
     {
+      // Skip if outside
+      if (y0 - PRECISION_HALF + y < 0 || y0 - PRECISION_HALF + y >= BMP_HEIGHT)
+        continue;
+
       processed_image[x0 - PRECISION_HALF + x][y0 - PRECISION_HALF + y] = 0;
     }
   }
@@ -138,14 +146,32 @@ void remove_cell(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, i
 
 int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
 {
-  for (int x = x0 - PRECISION_HALF; x < x0 + PRECISION_HALF; x++)
+  for (int x = x0 - PRECISION_HALF - 1; x < x0 + PRECISION_HALF + 1; x++)
   {
-    if (processed_image[x][y0 - PRECISION_HALF] || processed_image[x][y0 + PRECISION_HALF])
+    // Skip if outside image
+    if (x < 0 || x >= BMP_WIDTH)
+      continue;
+
+    if (!(y0 - PRECISION_HALF < 0) && processed_image[x][y0 - PRECISION_HALF])
+    {
       return 1;
+    }
+
+    if (!(y0 + PRECISION_HALF >= BMP_HEIGHT) && processed_image[x][y0 + PRECISION_HALF])
+    {
+      return 1;
+    }
   }
-  for (int y = y0 - PRECISION_HALF; y < y0 + PRECISION_HALF; y++)
+  for (int y = y0 - PRECISION_HALF - 1; y < y0 + PRECISION_HALF + 1; y++)
   {
-    if (processed_image[x0 - PRECISION_HALF][y] || processed_image[x0 + PRECISION_HALF][y])
+    // Skip if outside image
+    if (y < 0 || y >= BMP_HEIGHT)
+      continue;
+
+    if (!(x0 - PRECISION_HALF < 0) && processed_image[x0 - PRECISION_HALF][y])
+      return 1;
+
+    if (!(x0 + PRECISION_HALF >= BMP_WIDTH) && processed_image[x0 + PRECISION_HALF][y])
       return 1;
   }
   return 0;
@@ -153,9 +179,9 @@ int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, 
 
 void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
-  for (int x = PRECISION_HALF; x < (BMP_WIDTH - PRECISION_HALF); x++)
+  for (int x = 0; x < BMP_WIDTH; x++)
   {
-    for (int y = PRECISION_HALF; y < (BMP_HEIGHT - PRECISION_HALF); y++)
+    for (int y = 0; y < BMP_HEIGHT; y++)
     {
       if (processed_image[x][y])
       {
@@ -169,6 +195,17 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
           cell_positions[0][0] += 1;
           cell_positions[cell_positions[0][0]][0] = x;
           cell_positions[cell_positions[0][0]][1] = y;
+
+          // // Save image after each step of erosion
+          // if (cell_positions[0][0] > 10)
+          //   continue;
+
+          // printf("Cell #%d detected at (%d, %d)\n", cell_positions[0][0], x, y);
+          // char filename[100];
+          // unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
+          // greyscale_to_rgb(processed_image, output_image);
+          // snprintf(filename, 100, "detection_%d_out.bmp", cell_positions[0][0]);
+          // write_bitmap(output_image, filename);
         }
       }
     }
@@ -179,11 +216,19 @@ void draw_x(unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], int
 {
   for (int x = -5; x < 5; x++)
   {
+    int global_x = x0 + x;
+    if (global_x < 0 || global_x >= BMP_WIDTH)
+      continue;
+
     for (int y = -5; y < 5; y++)
     {
-      output_image[x0 + x][y0 + y][0] = 255;
-      output_image[x0 + x][y0 + y][1] = 128;
-      output_image[x0 + x][y0 + y][2] = 0;
+      int global_y = y0 + y;
+      if (global_y < 0 || global_y >= BMP_WIDTH)
+        continue;
+
+      output_image[global_x][global_y][0] = 255;
+      output_image[global_x][global_y][1] = 128;
+      output_image[global_x][global_y][2] = 0;
     }
   }
 }
