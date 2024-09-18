@@ -335,7 +335,7 @@ void benchmark()
     printf("Processing file: %s\n", args[i]);
 
     char output_path[100];
-    snprintf(output_path, 100, "%d_out.bmp", i);
+    snprintf(output_path, 100, "%d_out.bmp", i + 1);
 
     cell_detection(args[i], output_path, 0);
     if (cell_positions[0][0] != 300)
