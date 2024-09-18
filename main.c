@@ -16,6 +16,11 @@
 
 int cell_positions[400][2] = {0};
 
+// unsigned char SE[SE_SIZE][SE_SIZE] = {
+//     {0, 1, 0},
+//     {1, 1, 1},
+//     {0, 1, 0}};
+
 unsigned char SE[SE_SIZE][SE_SIZE] = {
     {0, 1, 0},
     {1, 1, 1},
@@ -62,27 +67,6 @@ void apply_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
   }
 }
 
-void remove_edges(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
-{
-  for (int x = 0; x < SE_HALF_SIZE; x++)
-  {
-    for (int y = 0; y < BMP_HEIGHT; y++)
-    {
-      processed_image[x][y] = 0;
-      processed_image[BMP_WIDTH - 1 - x][y] = 0;
-    }
-  }
-
-  for (int x = 0; x < BMP_WIDTH; x++)
-  {
-    for (int y = 0; y < SE_HALF_SIZE; y++)
-    {
-      processed_image[x][y] = 0;
-      processed_image[x][BMP_HEIGHT - 1 - y] = 0;
-    }
-  }
-}
-
 int erode_pixel(int x, int y, unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT])
 {
   unsigned char pixel = cloned_image[x][y];
@@ -100,8 +84,18 @@ int erode_pixel(int x, int y, unsigned char processed_image[BMP_WIDTH][BMP_HEIGH
         continue;
 
       // SE pixel is 1
+      int x_check = x - SE_HALF_SIZE + i;
+      int y_check = y - SE_HALF_SIZE + j;
+
+      // Check if pixel is outside image and erode it
+      if (x_check < 0 || x_check >= BMP_WIDTH || y_check < 0 || y_check >= BMP_HEIGHT)
+      {
+        processed_image[x][y] = 0;
+        return 1;
+      }
+
       // Check if matching pixel in image is also 1
-      if (cloned_image[x - (SE_HALF_SIZE) + i][y - (SE_HALF_SIZE) + j])
+      if (cloned_image[x_check][y_check])
         continue;
 
       // They weren't both white. Erode original pixel
@@ -121,9 +115,9 @@ int erode(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
   unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT];
   memcpy(cloned_image, processed_image, sizeof(cloned_image));
 
-  for (int x = SE_HALF_SIZE; x < BMP_WIDTH - SE_HALF_SIZE; x++)
+  for (int x = 0; x < BMP_WIDTH; x++)
   {
-    for (int y = SE_HALF_SIZE; y < BMP_HEIGHT - SE_HALF_SIZE; y++)
+    for (int y = 0; y < BMP_HEIGHT; y++)
     {
       eroded += erode_pixel(x, y, processed_image, cloned_image);
     }
@@ -222,7 +216,6 @@ int main(int argc, char **argv)
 
   // Do stuff
   apply_threshold(processed_image);
-  remove_edges(processed_image);
 
   int steps = 0;
 
