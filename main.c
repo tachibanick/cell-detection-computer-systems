@@ -329,6 +329,7 @@ void benchmark()
       "./samples/impossible/4IMPOSSIBLE.bmp",
       "./samples/impossible/5IMPOSSIBLE.bmp"};
 
+  int sucesses = 0;
   for (int i = 0; i < 35; i++)
   {
     cell_positions[0][0] = 0;
@@ -345,8 +346,10 @@ void benchmark()
     else
     {
       printf("PASSED \n\n\n");
+      sucesses++;
     }
   }
+  printf("Total %d/35", sucesses);
 }
 
 // Main function
