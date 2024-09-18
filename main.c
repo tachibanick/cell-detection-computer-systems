@@ -238,25 +238,10 @@ unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
 unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT];
 
-// Main function
-int main(int argc, char **argv)
+void cell_detection(char *input_path, char *output_path, char print_steps)
 {
-  // argc counts how may arguments are passed
-  // argv[0] is a string with the name of the program
-  // argv[1] is the first command line argument (input image)
-  // argv[2] is the second command line argument (output image)
-
-  // Checking that 2 arguments are passed
-  if (argc != 3)
-  {
-    fprintf(stderr, "Usage: %s <output file path> <output file path>\n", argv[0]);
-    exit(1);
-  }
-
-  printf("Example program - 02132 - A1\n");
-
   // Load image from file
-  read_bitmap(argv[1], input_image);
+  read_bitmap(input_path, input_image);
   rgb_to_greyscale(input_image, processed_image);
 
   // Do stuff
@@ -273,24 +258,120 @@ int main(int argc, char **argv)
   while (erode(processed_image))
   {
     // Save image after each step of erosion
-    char filename[100];
-    greyscale_to_rgb(processed_image, output_image);
-    snprintf(filename, 100, "step_%d_out.bmp", steps);
-    write_bitmap(output_image, filename);
-    steps++;
+    if (print_steps)
+    {
+      char filename[100];
+      greyscale_to_rgb(processed_image, output_image);
+      snprintf(filename, 100, "step_%d_out.bmp", steps);
+      write_bitmap(output_image, filename);
+      steps++;
+    }
 
     // Detect cells
     detect(processed_image);
   }
 
   // Save image to file
+
   for (int i = 1; i <= cell_positions[0][0]; i++)
   {
     draw_x(input_image, cell_positions[i][0], cell_positions[i][1]);
   }
-  write_bitmap(input_image, argv[2]);
+  write_bitmap(input_image, output_path);
 
   printf("%d cells found \n", cell_positions[0][0]);
-  printf("Done!\n");
+}
+
+void benchmark()
+{
+  // Array to store all the file paths
+  char args[35][50] = {
+      // 10 Easy samples
+      "./samples/easy/1EASY.bmp",
+      "./samples/easy/2EASY.bmp",
+      "./samples/easy/3EASY.bmp",
+      "./samples/easy/4EASY.bmp",
+      "./samples/easy/5EASY.bmp",
+      "./samples/easy/6EASY.bmp",
+      "./samples/easy/7EASY.bmp",
+      "./samples/easy/8EASY.bmp",
+      "./samples/easy/9EASY.bmp",
+      "./samples/easy/10EASY.bmp",
+
+      // 10 Medium samples
+      "./samples/medium/1MEDIUM.bmp",
+      "./samples/medium/2MEDIUM.bmp",
+      "./samples/medium/3MEDIUM.bmp",
+      "./samples/medium/4MEDIUM.bmp",
+      "./samples/medium/5MEDIUM.bmp",
+      "./samples/medium/6MEDIUM.bmp",
+      "./samples/medium/7MEDIUM.bmp",
+      "./samples/medium/8MEDIUM.bmp",
+      "./samples/medium/9MEDIUM.bmp",
+      "./samples/medium/10MEDIUM.bmp",
+
+      // 10 Hard samples
+      "./samples/hard/1HARD.bmp",
+      "./samples/hard/2HARD.bmp",
+      "./samples/hard/3HARD.bmp",
+      "./samples/hard/4HARD.bmp",
+      "./samples/hard/5HARD.bmp",
+      "./samples/hard/6HARD.bmp",
+      "./samples/hard/7HARD.bmp",
+      "./samples/hard/8HARD.bmp",
+      "./samples/hard/9HARD.bmp",
+      "./samples/hard/10HARD.bmp",
+
+      // 5 Impossible samples
+      "./samples/impossible/1IMPOSSIBLE.bmp",
+      "./samples/impossible/2IMPOSSIBLE.bmp",
+      "./samples/impossible/3IMPOSSIBLE.bmp",
+      "./samples/impossible/4IMPOSSIBLE.bmp",
+      "./samples/impossible/5IMPOSSIBLE.bmp"};
+
+  for (int i = 0; i < 35; i++)
+  {
+    cell_positions[0][0] = 0;
+    printf("Processing file: %s\n", args[i]);
+
+    char output_path[100];
+    snprintf(output_path, 100, "%d_out.bmp", i);
+
+    cell_detection(args[i], output_path, 0);
+    if (cell_positions[0][0] != 300)
+    {
+      printf("FAILED \n\n\n");
+    }
+    else
+    {
+      printf("PASSED \n\n\n");
+    }
+  }
+}
+
+// Main function
+int main(int argc, char **argv)
+{
+  // argc counts how may arguments are passed
+  // argv[0] is a string with the name of the program
+  // argv[1] is the first command line argument (input image)
+  // argv[2] is the second command line argument (output image)
+
+  // Checking that 2 arguments are passed
+  if (argc == 2)
+  {
+    benchmark();
+    exit(0);
+  }
+
+  if (argc != 3)
+  {
+    fprintf(stderr, "Usage: %s <output file path> <output file path>\n", argv[0]);
+    exit(1);
+  }
+
+  printf("Example program - 02132 - A1\n");
+  cell_detection(argv[1], argv[2], 1);
+
   return 0;
 }
