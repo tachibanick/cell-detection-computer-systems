@@ -10,7 +10,9 @@
 #include "cbmp.h"
 #define THRESHOLD 96
 #define SE_SIZE 3
+#define SE_HALF_SIZE ((SE_SIZE) / 2)
 #define PRECISION 12
+#define PRECISION_HALF ((PRECISION) / 2)
 
 int cell_positions[400][2] = {0};
 
@@ -62,7 +64,7 @@ void apply_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 
 void remove_edges(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
-  for (int x = 0; x < SE_SIZE / 2; x++)
+  for (int x = 0; x < SE_HALF_SIZE; x++)
   {
     for (int y = 0; y < BMP_HEIGHT; y++)
     {
@@ -73,7 +75,7 @@ void remove_edges(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 
   for (int x = 0; x < BMP_WIDTH; x++)
   {
-    for (int y = 0; y < SE_SIZE / 2; y++)
+    for (int y = 0; y < SE_HALF_SIZE; y++)
     {
       processed_image[x][y] = 0;
       processed_image[x][BMP_HEIGHT - 1 - y] = 0;
@@ -99,7 +101,7 @@ int erode_pixel(int x, int y, unsigned char processed_image[BMP_WIDTH][BMP_HEIGH
 
       // SE pixel is 1
       // Check if matching pixel in image is also 1
-      if (cloned_image[x - (SE_SIZE / 2) + i][y - (SE_SIZE / 2) + j])
+      if (cloned_image[x - (SE_HALF_SIZE) + i][y - (SE_HALF_SIZE) + j])
         continue;
 
       // They weren't both white. Erode original pixel
@@ -119,9 +121,9 @@ int erode(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
   unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT];
   memcpy(cloned_image, processed_image, sizeof(cloned_image));
 
-  for (int x = SE_SIZE / 2; x < BMP_WIDTH - SE_SIZE / 2; x++)
+  for (int x = SE_HALF_SIZE; x < BMP_WIDTH - SE_HALF_SIZE; x++)
   {
-    for (int y = SE_SIZE / 2; y < BMP_HEIGHT - SE_SIZE / 2; y++)
+    for (int y = SE_HALF_SIZE; y < BMP_HEIGHT - SE_HALF_SIZE; y++)
     {
       eroded += erode_pixel(x, y, processed_image, cloned_image);
     }
@@ -135,21 +137,21 @@ void remove_cell(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, i
   {
     for (int y = 0; y < PRECISION; y++)
     {
-      processed_image[x0 - PRECISION / 2 + x][y0 - PRECISION / 2 + y] = 0;
+      processed_image[x0 - PRECISION_HALF + x][y0 - PRECISION_HALF + y] = 0;
     }
   }
 }
 
 int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
 {
-  for (int x = x0 - PRECISION / 2; x < x0 + PRECISION / 2; x++)
+  for (int x = x0 - PRECISION_HALF; x < x0 + PRECISION_HALF; x++)
   {
-    if (processed_image[x][y0 - PRECISION / 2] || processed_image[x][y0 + PRECISION / 2])
+    if (processed_image[x][y0 - PRECISION_HALF] || processed_image[x][y0 + PRECISION_HALF])
       return 1;
   }
-  for (int y = y0 - PRECISION / 2; y < y0 + PRECISION / 2; y++)
+  for (int y = y0 - PRECISION_HALF; y < y0 + PRECISION_HALF; y++)
   {
-    if (processed_image[x0 - PRECISION / 2][y] || processed_image[x0 + PRECISION / 2][y])
+    if (processed_image[x0 - PRECISION_HALF][y] || processed_image[x0 + PRECISION_HALF][y])
       return 1;
   }
   return 0;
@@ -157,9 +159,9 @@ int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, 
 
 void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
-  for (int x = (PRECISION / 2) + 1; x < (BMP_WIDTH - (PRECISION / 2) - 1); x++)
+  for (int x = (PRECISION_HALF) + 1; x < (BMP_WIDTH - (PRECISION_HALF)-1); x++)
   {
-    for (int y = (PRECISION / 2) + 1; y < (BMP_HEIGHT - (PRECISION / 2) - 1); y++)
+    for (int y = (PRECISION_HALF) + 1; y < (BMP_HEIGHT - (PRECISION_HALF)-1); y++)
     {
       if (processed_image[x][y])
       {
@@ -221,7 +223,7 @@ int main(int argc, char **argv)
   // Do stuff
   apply_threshold(processed_image);
   remove_edges(processed_image);
-  while (erode(processed_image) != 0)
+  while (erode(processed_image))
   {
     detect(processed_image);
   }
