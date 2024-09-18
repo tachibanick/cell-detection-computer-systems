@@ -223,8 +223,25 @@ int main(int argc, char **argv)
   // Do stuff
   apply_threshold(processed_image);
   remove_edges(processed_image);
+
+  int steps = 0;
+
+  // Save image before erosion
+  greyscale_to_rgb(processed_image, output_image);
+  char filename[15];
+  strcpy(filename, "step_0_out.bmp");
+  write_bitmap(output_image, filename);
+
   while (erode(processed_image))
   {
+    // Save image after each step of erosion
+    char filename[100];
+    greyscale_to_rgb(processed_image, output_image);
+    snprintf(filename, 100, "step_%d_out.bmp", steps);
+    write_bitmap(output_image, filename);
+    steps++;
+
+    // Detect cells
     detect(processed_image);
   }
 
