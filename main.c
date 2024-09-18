@@ -9,7 +9,7 @@
 #include <string.h>
 #include "cbmp.h"
 #define THRESHOLD 90
-#define SE_SIZE 3
+#define SE_SIZE 5
 #define SE_HALF_SIZE ((SE_SIZE) / 2)
 #define PRECISION 12
 #define PRECISION_HALF ((PRECISION) / 2)
@@ -22,9 +22,29 @@ int cell_positions[400][2] = {0};
 //     {0, 1, 0}};
 
 unsigned char SE[SE_SIZE][SE_SIZE] = {
-    {0, 1, 0},
-    {1, 1, 1},
-    {0, 1, 0}};
+    {0, 0, 1, 0, 0},
+    {0, 0, 1, 0, 0},
+
+    {1, 1, 1, 1, 1},
+
+    {0, 0, 1, 0, 0},
+    {0, 0, 1, 0, 0},
+};
+
+unsigned char heart[12][13] = {
+    {0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0}, // Top part of the heart with edges as 2
+    {0, 2, 1, 1, 1, 2, 0, 2, 1, 1, 4, 2, 0}, // Edges as 2
+    {2, 1, 3, 3, 1, 1, 2, 1, 1, 1, 1, 4, 2}, // Top part with edges 2
+    {2, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 4, 2}, // More edge rows
+    {2, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 4, 2},
+    {2, 1, 3, 1, 1, 1, 1, 1, 1, 1, 1, 4, 2},
+    {0, 2, 1, 1, 1, 1, 1, 1, 1, 1, 4, 2, 0},
+    {0, 0, 2, 1, 1, 1, 1, 1, 1, 4, 2, 0, 0},
+    {0, 0, 0, 2, 1, 1, 1, 1, 4, 2, 0, 0, 0},
+    {0, 0, 0, 0, 2, 1, 1, 4, 2, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 2, 4, 2, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0},
+};
 
 void rgb_to_greyscale(unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
@@ -211,6 +231,52 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
     }
   }
 }
+void draw_heart(unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], int x0, int y0)
+{
+  // hardcoded fra hjertet ovenover
+  for (int x = 0; x < 13; x++)
+  {
+    for (int y = 0; y < 12; y++)
+    {
+      int global_x = x0 + x - 7;
+      int global_y = y0 + y - 6;
+
+      if (heart[y][x])
+      {
+        if (global_y < 0 || global_y >= BMP_WIDTH)
+          continue;
+
+        if (global_x < 0 || global_x >= BMP_WIDTH)
+          continue;
+
+        switch (heart[y][x])
+        {
+        case 1:
+          output_image[global_x][global_y][0] = 255;
+          output_image[global_x][global_y][1] = 0;
+          output_image[global_x][global_y][2] = 0;
+          break;
+        case 2:
+          output_image[global_x][global_y][0] = 0;
+          output_image[global_x][global_y][1] = 0;
+          output_image[global_x][global_y][2] = 0;
+          break;
+        case 3:
+          output_image[global_x][global_y][0] = 255;
+          output_image[global_x][global_y][1] = 255;
+          output_image[global_x][global_y][2] = 255;
+          break;
+        case 4:
+          output_image[global_x][global_y][0] = 55;
+          output_image[global_x][global_y][1] = 0;
+          output_image[global_x][global_y][2] = 0;
+        default:
+          break;
+        }
+      }
+    }
+  }
+}
 
 void draw_x(unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], int x0, int y0)
 {
@@ -275,7 +341,7 @@ void cell_detection(char *input_path, char *output_path, char print_steps)
 
   for (int i = 1; i <= cell_positions[0][0]; i++)
   {
-    draw_x(input_image, cell_positions[i][0], cell_positions[i][1]);
+    draw_heart(input_image, cell_positions[i][0], cell_positions[i][1]);
   }
   write_bitmap(input_image, output_path);
 
