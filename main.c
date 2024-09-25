@@ -21,9 +21,9 @@
 // prints step by step
 #define print_cell_detection 0
 // ratio between how many cells inside detection to in the filtration layer
-#define RATIO_INSIDE_OUT 10
+#define RATIO_INSIDE_OUT 8
 // how many cells must be at least detected inside the detection layer
-#define MIN_INSIDE_CELLS 1
+#define MIN_INSIDE_CELLS 4
 
 int cell_positions[400][2] = {{0}};
 
