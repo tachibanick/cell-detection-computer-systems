@@ -15,6 +15,14 @@
 #define PRECISION_HALF ((PRECISION) / 2)
 #define FILTER_ZONE_SIZE (PRECISION + 2)
 #define FILTER_ZONE_HALF (FILTER_ZONE_SIZE / 2)
+#define FILL_CIRCLE_SIZE 15
+#define FILL_CIRCLE_HALF (FILL_CIRCLE_SIZE / 2)
+// prints step by step
+#define print_cell_detection 0
+// ratio between how many cells inside detection to in the filtration layer
+#define RATIO_INSIDE_OUT 100
+// how many cells must be at least detected inside the detection layer
+#define MIN_INSIDE_CELLS 1
 
 int cell_positions[400][2] = {0};
 
@@ -32,6 +40,10 @@ unsigned char SE[SE_SIZE][SE_SIZE] = {
 //     {0, 0, 1, 0, 0},
 //     {0, 0, 1, 0, 0},
 // };
+// Declaring the array to store the image (unsigned char = unsigned 8 bit)
+unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
+unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
+unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT];
 
 unsigned char detection_zone[PRECISION][PRECISION] = {
     {0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0},
@@ -46,7 +58,7 @@ unsigned char detection_zone[PRECISION][PRECISION] = {
     {0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0},
     {0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0}};
 
-unsigned char filter_zone[PRECISION + 2][PRECISION + 2] = {
+unsigned char filter_zone[FILTER_ZONE_SIZE][FILTER_ZONE_SIZE] = {
     {0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0},
     {0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0},
     {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
@@ -60,6 +72,45 @@ unsigned char filter_zone[PRECISION + 2][PRECISION + 2] = {
     {0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0},
     {0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0},
     {0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0}};
+
+// 20x20
+// unsigned char filled_circle[FILL_CIRCLE_SIZE][FILL_CIRCLE_SIZE] = {
+//     {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+//     {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+//     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+//     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+//     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+//     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+//     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+//     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+//     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+//     {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+//     {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0}};
+
+// 15x15
+unsigned char filled_circle[FILL_CIRCLE_SIZE][FILL_CIRCLE_SIZE] = {
+    {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+    {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+    {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+    {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0}};
 
 unsigned char heart[12][13] = {
     {0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0}, // Top part of the heart with edges as 2
@@ -245,22 +296,22 @@ void close(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 
 void remove_cell(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
 {
-  for (int x = 0; x < PRECISION; x++)
+  for (int x = 0; x < FILL_CIRCLE_SIZE; x++)
   {
     // Skip if outside image
-    if (x0 - PRECISION_HALF + x < 0 || x0 - PRECISION_HALF + x >= BMP_WIDTH)
+    if (x0 - FILL_CIRCLE_HALF + x < 0 || x0 - FILL_CIRCLE_HALF + x >= BMP_WIDTH)
       continue;
 
-    for (int y = 0; y < PRECISION; y++)
+    for (int y = 0; y < FILL_CIRCLE_SIZE + 2; y++)
     {
       // Skip if outside
-      if (y0 - PRECISION_HALF + y < 0 || y0 - PRECISION_HALF + y >= BMP_HEIGHT)
+      if (y0 - FILL_CIRCLE_HALF + y < 0 || y0 - FILL_CIRCLE_HALF + y >= BMP_HEIGHT)
         continue;
 
       // Only remove cells in the detection zone
-      if (detection_zone[x][y])
+      if (filled_circle[x][y])
       {
-        processed_image[x0 - PRECISION_HALF + x][y0 - PRECISION_HALF + y] = 0;
+        processed_image[x0 - FILL_CIRCLE_HALF + x][y0 - FILL_CIRCLE_HALF + y] = 0;
       }
     }
   }
@@ -346,8 +397,8 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
       if (processed_image[x][y])
       {
         int surrounding_cells = detect_around(processed_image, x, y);
-
-        if (surrounding_cells && count_inside(processed_image, x, y) / surrounding_cells < 100)
+        int inside_cells = count_inside(processed_image, x, y);
+        if (surrounding_cells && inside_cells / surrounding_cells < RATIO_INSIDE_OUT || inside_cells < MIN_INSIDE_CELLS)
         {
           continue;
         }
@@ -361,13 +412,14 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
           // // Save image after each step of erosion
           // if (cell_positions[0][0] > 10)
           //   continue;
-
-          // printf("Cell #%d detected at (%d, %d)\n", cell_positions[0][0], x, y);
-          // char filename[100];
-          // unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
-          // greyscale_to_rgb(processed_image, output_image);
-          // snprintf(filename, 100, "detection_%d_out.bmp", cell_positions[0][0]);
-          // write_bitmap(output_image, filename);
+          if (print_cell_detection)
+          {
+            printf("Cell #%d detected at (%d, %d)\n", cell_positions[0][0], x, y);
+            char filename[100];
+            greyscale_to_rgb(processed_image, output_image);
+            snprintf(filename, 100, "detection_%d_out.bmp", cell_positions[0][0]);
+            write_bitmap(output_image, filename);
+          }
         }
       }
     }
@@ -440,11 +492,6 @@ void draw_x(unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], int
     }
   }
 }
-
-// Declaring the array to store the image (unsigned char = unsigned 8 bit)
-unsigned char input_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
-unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS];
-unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT];
 
 void cell_detection(char *input_path, char *output_path, char print_steps)
 {
@@ -538,6 +585,7 @@ void benchmark()
       "./samples/impossible/5IMPOSSIBLE.bmp"};
 
   int sucesses = 0;
+  int missed_cells = 0;
   for (int i = 0; i < 35; i++)
   {
     cell_positions[0][0] = 0;
@@ -547,6 +595,7 @@ void benchmark()
     snprintf(output_path, 100, "%d_out.bmp", i + 1);
 
     cell_detection(args[i], output_path, 0);
+    missed_cells += abs(300 - cell_positions[0][0]);
     if (cell_positions[0][0] < 280)
     {
       printf("FAILED, %d \n\n\n", 300 - cell_positions[0][0]);
@@ -557,7 +606,8 @@ void benchmark()
       sucesses++;
     }
   }
-  printf("Total %d/35", sucesses);
+  printf("Total %d/35\n", sucesses);
+  printf("Total missed cells: %d", missed_cells);
 }
 
 // Main function
