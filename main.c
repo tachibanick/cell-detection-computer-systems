@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include "cbmp.h"
 #define SE_SIZE 3
@@ -167,7 +168,7 @@ void apply_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsig
   }
 }
 
-void get_histogram(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], u_int32_t histogram[256])
+void get_histogram(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], uint32_t histogram[256])
 {
   // Initialize histogram
   for (int i = 0; i < 256; i++)
@@ -195,7 +196,7 @@ uint32_t get_pixel_sum(uint32_t histogram[256])
   return sum_total;
 }
 
-double get_otsu_threshold_variance(uint32_t histogram[256], unsigned char threshold, uint32_t *total_pixels, uint32_t *sum_total, uint32_t *sum_background, u_int32_t *weight_background, uint32_t *weight_foreground)
+double get_otsu_threshold_variance(uint32_t histogram[256], unsigned char threshold, uint32_t *total_pixels, uint32_t *sum_total, uint32_t *sum_background, uint32_t *weight_background, uint32_t *weight_foreground)
 {
   *weight_background += histogram[threshold];
   if (*weight_background == 0)
@@ -216,7 +217,7 @@ double get_otsu_threshold_variance(uint32_t histogram[256], unsigned char thresh
 
 unsigned char get_otsu_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
-  u_int32_t histogram[256];
+  uint32_t histogram[256];
   get_histogram(processed_image, histogram);
 
   uint32_t total_pixels = BMP_WIDTH * BMP_HEIGHT;
