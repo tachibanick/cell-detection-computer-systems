@@ -32,11 +32,6 @@ double cpu_time_used;
 
 int cell_positions[400][2] = {{0}};
 
-// unsigned char SE[SE_SIZE][SE_SIZE] = {
-//     {0, 1, 0},
-//     {1, 1, 1},
-//     {0, 1, 0}};
-
 unsigned char SE[SE_SIZE][SE_SIZE] = {
     {0, 0, 1, 0, 0},
     {0, 0, 1, 0, 0},
@@ -125,23 +120,6 @@ unsigned char filled_circle[FILL_CIRCLE_SIZE][FILL_CIRCLE_SIZE] = {
     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
     {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
     {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0}};
-
-// // 15x15
-// unsigned char filled_circle[FILL_CIRCLE_SIZE][FILL_CIRCLE_SIZE] = {
-//     {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
-//     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
-//     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-//     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
-//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-//     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-//     {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
-//     {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-//     {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
-//     {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0}};
 
 unsigned char heart[12][13] = {
     {0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 2, 0, 0}, // Top part of the heart with edges as 2
@@ -449,36 +427,6 @@ int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, 
     }
   }
   return outside;
-  // int around = 0;
-  // for (int x = x0 - PRECISION_HALF - 1; x < x0 + PRECISION_HALF + 1; x++)
-  // {
-  //   // Skip if outside image
-  //   if (x < 0 || x >= BMP_WIDTH)
-  //     continue;
-
-  //   if (!(y0 - PRECISION_HALF < 0) && processed_image[x][y0 - PRECISION_HALF])
-  //   {
-  //     around++;
-  //   }
-
-  //   if (!(y0 + PRECISION_HALF >= BMP_HEIGHT) && processed_image[x][y0 + PRECISION_HALF])
-  //   {
-  //     around++;
-  //   }
-  // }
-  // for (int y = y0 - PRECISION_HALF - 1; y < y0 + PRECISION_HALF + 1; y++)
-  // {
-  //   // Skip if outside image
-  //   if (y < 0 || y >= BMP_HEIGHT)
-  //     continue;
-
-  //   if (!(x0 - PRECISION_HALF < 0) && processed_image[x0 - PRECISION_HALF][y])
-  //     around++;
-
-  //   if (!(x0 + PRECISION_HALF >= BMP_WIDTH) && processed_image[x0 + PRECISION_HALF][y])
-  //     around++;
-  // }
-  // return around;
 }
 int count_inside(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
 {
@@ -522,9 +470,6 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
           cell_positions[cell_positions[0][0]][0] = x + 5;
           cell_positions[cell_positions[0][0]][1] = y + 2;
 
-          // // Save image after each step of erosion
-          // if (cell_positions[0][0] > 10)
-          //   continue;
           if (PRINT_CELL_DETECTION)
           {
             printf("Cell #%d detected at (%d, %d)\n", cell_positions[0][0], x, y);
