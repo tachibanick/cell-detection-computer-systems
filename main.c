@@ -8,23 +8,22 @@
 #include <stdio.h>
 #include <string.h>
 #include "cbmp.h"
-#define THRESHOLD 90
 #define SE_SIZE 3
 #define SE_HALF_SIZE ((SE_SIZE) / 2)
 #define PRECISION 11
 #define PRECISION_HALF ((PRECISION) / 2)
-#define FILTER_ZONE_SIZE (PRECISION + 2)
-#define FILTER_ZONE_HALF (FILTER_ZONE_SIZE / 2)
+#define FILTER_ZONE_SIZE ((PRECISION) + 2)
+#define FILTER_ZONE_HALF ((FILTER_ZONE_SIZE) / 2)
 #define FILL_CIRCLE_SIZE 15
-#define FILL_CIRCLE_HALF (FILL_CIRCLE_SIZE / 2)
+#define FILL_CIRCLE_HALF ((FILL_CIRCLE_SIZE) / 2)
 // prints step by step
 #define print_cell_detection 0
 // ratio between how many cells inside detection to in the filtration layer
-#define RATIO_INSIDE_OUT 100
+#define RATIO_INSIDE_OUT 50
 // how many cells must be at least detected inside the detection layer
 #define MIN_INSIDE_CELLS 1
 
-int cell_positions[400][2] = {0};
+int cell_positions[400][2] = {{0}};
 
 unsigned char SE[SE_SIZE][SE_SIZE] = {
     {0, 1, 0},
@@ -157,15 +156,97 @@ void greyscale_to_rgb(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsi
   }
 }
 
-void apply_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+void apply_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsigned char threshold)
 {
   for (int x = 0; x < BMP_WIDTH; x++)
   {
     for (int y = 0; y < BMP_HEIGHT; y++)
     {
-      processed_image[x][y] = processed_image[x][y] > THRESHOLD ? 255 : 0;
+      processed_image[x][y] = processed_image[x][y] > threshold ? 255 : 0;
     }
   }
+}
+
+void get_histogram(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], u_int32_t histogram[256])
+{
+  // Initialize histogram
+  for (int i = 0; i < 256; i++)
+  {
+    histogram[i] = 0;
+  }
+
+  // Calculate histogram
+  for (int x = 0; x < BMP_WIDTH; x++)
+  {
+    for (int y = 0; y < BMP_HEIGHT; y++)
+    {
+      histogram[processed_image[x][y]]++;
+    }
+  }
+}
+
+uint32_t get_pixel_sum(uint32_t histogram[256])
+{
+  uint32_t sum_total = 0;
+  for (int t = 0; t < 256; t++)
+  {
+    sum_total += t * histogram[t];
+  }
+  return sum_total;
+}
+
+double get_otsu_threshold_variance(uint32_t histogram[256], unsigned char threshold, uint32_t *total_pixels, uint32_t *sum_total, uint32_t *sum_background, u_int32_t *weight_background, uint32_t *weight_foreground)
+{
+  *weight_background += histogram[threshold];
+  if (*weight_background == 0)
+    return 0;
+
+  *weight_foreground = *total_pixels - *weight_background;
+  if (*weight_foreground == 0)
+    return 0;
+
+  *sum_background += threshold * histogram[threshold];
+  double mean_background = (double)*sum_background / *weight_background;
+  double mean_foreground = (double)(*sum_total - *sum_background) / *weight_foreground;
+
+  // Calculate inter-class variance
+  return (double)*weight_background * *weight_foreground *
+         (mean_background - mean_foreground) * (mean_background - mean_foreground);
+}
+
+unsigned char get_otsu_threshold(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
+{
+  u_int32_t histogram[256];
+  get_histogram(processed_image, histogram);
+
+  uint32_t total_pixels = BMP_WIDTH * BMP_HEIGHT;
+  uint32_t sum_total = get_pixel_sum(histogram); // Sum of pixel values in the image
+
+  uint32_t sum_background = 0; // Sum of pixel values in the background
+
+  uint32_t weight_background = 0; // Number of pixels in the background
+  uint32_t weight_foreground = 0; // Number of pixels in the foreground
+
+  double var_max = 0;
+  int threshold = 0;
+
+  // Try all thresholds to find the one that best splits the foreground and background
+  for (int t = 0; t < 256; t++)
+  {
+    double var_between = get_otsu_threshold_variance(histogram, t, &total_pixels, &sum_total, &sum_background, &weight_background, &weight_foreground);
+
+    if (weight_background != 0 && weight_foreground == 0)
+      break;
+
+    // Update if new maximum variance is found
+    if (var_between > var_max)
+    {
+      var_max = var_between;
+      threshold = t;
+    }
+  }
+
+  return threshold;
 }
 
 int erode_pixel(int x, int y, unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], unsigned char cloned_image[BMP_WIDTH][BMP_HEIGHT])
@@ -500,7 +581,9 @@ void cell_detection(char *input_path, char *output_path, char print_steps)
   rgb_to_greyscale(input_image, processed_image);
 
   // Do stuff
-  apply_threshold(processed_image);
+  unsigned char threshold = get_otsu_threshold(processed_image);
+  printf("Threshold: %d\n", threshold); // TODO: Remove
+  apply_threshold(processed_image, threshold);
 
   int steps = 0;
 
