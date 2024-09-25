@@ -25,7 +25,7 @@ double cpu_time_used;
 // prints step by step
 #define print_cell_detection 0
 // ratio between how many cells inside detection to in the filtration layer
-#define RATIO_INSIDE_OUT 4
+#define RATIO_INSIDE_OUT 3
 // how many cells must be at least detected inside the detection layer
 #define MIN_INSIDE_CELLS 87
 
