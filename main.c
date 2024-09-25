@@ -13,6 +13,8 @@
 #define SE_HALF_SIZE ((SE_SIZE) / 2)
 #define PRECISION 11
 #define PRECISION_HALF ((PRECISION) / 2)
+#define FILTER_ZONE_SIZE (PRECISION + 2)
+#define FILTER_ZONE_HALF (FILTER_ZONE_SIZE / 2)
 
 int cell_positions[400][2] = {0};
 
@@ -255,50 +257,21 @@ void remove_cell(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, i
       if (y0 - PRECISION_HALF + y < 0 || y0 - PRECISION_HALF + y >= BMP_HEIGHT)
         continue;
 
-      processed_image[x0 - PRECISION_HALF + x][y0 - PRECISION_HALF + y] = 0;
+      // Only remove cells in the detection zone
+      if (detection_zone[x][y])
+      {
+        processed_image[x0 - PRECISION_HALF + x][y0 - PRECISION_HALF + y] = 0;
+      }
     }
   }
 }
 
 int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
 {
-  int around = 0;
-  for (int x = x0 - PRECISION_HALF - 1; x < x0 + PRECISION_HALF + 1; x++)
+  int outside = 0;
+  for (int x = x0 - FILTER_ZONE_HALF; x < x0 + FILTER_ZONE_HALF + 1; x++)
   {
-    // Skip if outside image
-    if (x < 0 || x >= BMP_WIDTH)
-      continue;
-
-    if (!(y0 - PRECISION_HALF < 0) && processed_image[x][y0 - PRECISION_HALF])
-    {
-      around++;
-    }
-
-    if (!(y0 + PRECISION_HALF >= BMP_HEIGHT) && processed_image[x][y0 + PRECISION_HALF])
-    {
-      around++;
-    }
-  }
-  for (int y = y0 - PRECISION_HALF - 1; y < y0 + PRECISION_HALF + 1; y++)
-  {
-    // Skip if outside image
-    if (y < 0 || y >= BMP_HEIGHT)
-      continue;
-
-    if (!(x0 - PRECISION_HALF < 0) && processed_image[x0 - PRECISION_HALF][y])
-      around++;
-
-    if (!(x0 + PRECISION_HALF >= BMP_WIDTH) && processed_image[x0 + PRECISION_HALF][y])
-      around++;
-  }
-  return around;
-}
-int count_inside(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
-{
-  int inside = 0;
-  for (int x = x0 - PRECISION_HALF; x < x0 + PRECISION_HALF; x++)
-  {
-    for (int y = y0 - PRECISION_HALF; y < y0 + PRECISION_HALF; y++)
+    for (int y = y0 - FILTER_ZONE_HALF; y < y0 + FILTER_ZONE_HALF + 1; y++)
     {
       // Skip if outside image
       if (x < 0 || x >= BMP_WIDTH)
@@ -307,7 +280,57 @@ int count_inside(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, i
       if (y < 0 || y >= BMP_HEIGHT)
         continue;
 
-      if (processed_image[x][y])
+      if (processed_image[x][y] && filter_zone[x + FILTER_ZONE_HALF - x0][y + FILTER_ZONE_HALF - y0])
+        outside++;
+    }
+  }
+  return outside;
+  // int around = 0;
+  // for (int x = x0 - PRECISION_HALF - 1; x < x0 + PRECISION_HALF + 1; x++)
+  // {
+  //   // Skip if outside image
+  //   if (x < 0 || x >= BMP_WIDTH)
+  //     continue;
+
+  //   if (!(y0 - PRECISION_HALF < 0) && processed_image[x][y0 - PRECISION_HALF])
+  //   {
+  //     around++;
+  //   }
+
+  //   if (!(y0 + PRECISION_HALF >= BMP_HEIGHT) && processed_image[x][y0 + PRECISION_HALF])
+  //   {
+  //     around++;
+  //   }
+  // }
+  // for (int y = y0 - PRECISION_HALF - 1; y < y0 + PRECISION_HALF + 1; y++)
+  // {
+  //   // Skip if outside image
+  //   if (y < 0 || y >= BMP_HEIGHT)
+  //     continue;
+
+  //   if (!(x0 - PRECISION_HALF < 0) && processed_image[x0 - PRECISION_HALF][y])
+  //     around++;
+
+  //   if (!(x0 + PRECISION_HALF >= BMP_WIDTH) && processed_image[x0 + PRECISION_HALF][y])
+  //     around++;
+  // }
+  // return around;
+}
+int count_inside(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
+{
+  int inside = 0;
+  for (int x = x0 - PRECISION_HALF; x < x0 + PRECISION_HALF + 1; x++)
+  {
+    for (int y = y0 - PRECISION_HALF; y < y0 + PRECISION_HALF + 1; y++)
+    {
+      // Skip if outside image
+      if (x < 0 || x >= BMP_WIDTH)
+        continue;
+      // Skip if outside image
+      if (y < 0 || y >= BMP_HEIGHT)
+        continue;
+
+      if (processed_image[x][y] && detection_zone[x + PRECISION_HALF - x0][y + PRECISION_HALF - y0])
         inside++;
     }
   }
