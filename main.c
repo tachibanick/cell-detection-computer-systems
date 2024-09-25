@@ -631,7 +631,7 @@ void benchmark()
 
     cell_detection(args[i], output_path, 0);
     missed_cells += abs(300 - cell_positions[0][0]);
-    if (cell_positions[0][0] < 280 || cell_positions[0][0] > 320)
+    if (cell_positions[0][0] < 290 || cell_positions[0][0] > 310)
     {
       printf("FAILED, %d \n\n\n", 300 - cell_positions[0][0]);
     }
