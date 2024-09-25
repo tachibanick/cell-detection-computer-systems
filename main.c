@@ -19,15 +19,16 @@
 #define FILTER_ZONE_HALF ((FILTER_ZONE_SIZE) / 2)
 #define FILL_CIRCLE_SIZE 20
 #define FILL_CIRCLE_HALF ((FILL_CIRCLE_SIZE) / 2)
-// Used for time analysis
-clock_t start, end;
-double cpu_time_used;
 // prints step by step
-#define print_cell_detection 0
+#define PRINT_CELL_DETECTION 0
 // ratio between how many cells inside detection to in the filtration layer
 #define RATIO_INSIDE_OUT 3
 // how many cells must be at least detected inside the detection layer
 #define MIN_INSIDE_CELLS 87
+
+// Used for time analysis
+clock_t start, end;
+double cpu_time_used;
 
 int cell_positions[400][2] = {{0}};
 
@@ -518,13 +519,13 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
         {
           remove_cell(processed_image, x, y);
           cell_positions[0][0] += 1;
-          cell_positions[cell_positions[0][0]][0] = x;
-          cell_positions[cell_positions[0][0]][1] = y;
+          cell_positions[cell_positions[0][0]][0] = x + 5;
+          cell_positions[cell_positions[0][0]][1] = y + 2;
 
           // // Save image after each step of erosion
           // if (cell_positions[0][0] > 10)
           //   continue;
-          if (print_cell_detection)
+          if (PRINT_CELL_DETECTION)
           {
             printf("Cell #%d detected at (%d, %d)\n", cell_positions[0][0], x, y);
             char filename[100];
