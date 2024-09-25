@@ -293,6 +293,26 @@ int detect_around(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, 
   }
   return around;
 }
+int count_inside(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT], int x0, int y0)
+{
+  int inside = 0;
+  for (int x = x0 - PRECISION_HALF; x < x0 + PRECISION_HALF; x++)
+  {
+    for (int y = y0 - PRECISION_HALF; y < y0 + PRECISION_HALF; y++)
+    {
+      // Skip if outside image
+      if (x < 0 || x >= BMP_WIDTH)
+        continue;
+      // Skip if outside image
+      if (y < 0 || y >= BMP_HEIGHT)
+        continue;
+
+      if (processed_image[x][y])
+        inside++;
+    }
+  }
+  return inside;
+}
 
 void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
 {
@@ -302,7 +322,9 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
     {
       if (processed_image[x][y])
       {
-        if (detect_around(processed_image, x, y))
+        int surrounding_cells = detect_around(processed_image, x, y);
+
+        if (surrounding_cells && count_inside(processed_image, x, y) / surrounding_cells < 100)
         {
           continue;
         }
