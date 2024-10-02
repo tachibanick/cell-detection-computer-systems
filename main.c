@@ -529,14 +529,28 @@ void draw_x(unsigned char output_image[BMP_WIDTH][BMP_HEIGHT][BMP_CHANNELS], int
 void cell_detection(char *input_path, char *output_path, char print_steps)
 {
   // Load image from file
+  printf("Reading bitmap...\n");
+  clock_t s = clock();
   read_bitmap(input_path, input_image);
+  clock_t e = clock();
+  double time_res = e - s;
+  printf("Done: reading bitmap...\ntime: %f\n", time_res);
+  
+  printf("Turning image to greyscale...");
+  s = clock();
   rgb_to_greyscale(input_image, processed_image);
+  e = clock();
+  time_res = e - s;
+  printf("Done: turning image to greyscale...\ntime: %f\n", time_res);
 
   // Do stuff
   unsigned char threshold = get_otsu_threshold(processed_image) + THRESHOLD_OFFSET;
-  printf("Threshold: %d\n", threshold); // TODO: Remove
+  printf("Apply Threshold: %d\n", threshold); // TODO: Remove
+  s = clock();
   apply_threshold(processed_image, threshold);
-
+  e = clock();
+  time_res = e - s;
+  printf("Done: apply threshold...\ntime: %f\n", time_res);
   int steps = 0;
 
   // Save image before erosion
@@ -545,6 +559,9 @@ void cell_detection(char *input_path, char *output_path, char print_steps)
   strcpy(filename, "step_0_out.bmp");
   write_bitmap(output_image, filename);
 
+
+  printf("Eroding image...");
+  s = clock();
   while (erode(processed_image))
   {
     // Save image after each step of erosion
@@ -560,15 +577,20 @@ void cell_detection(char *input_path, char *output_path, char print_steps)
     // Detect cells
     detect(processed_image);
   }
-
+  e = clock();
+  time_res = e - s;
+  printf("Done: erode...\ntime: %f\n", time_res);
   // Save image to file
-
+  printf("Save image to file...");
+  s = clock();
   for (int i = 1; i <= cell_positions[0][0]; i++)
   {
     draw_heart(input_image, cell_positions[i][0], cell_positions[i][1]);
   }
   write_bitmap(input_image, output_path);
-
+  e = clock();
+  time_res = e - s;
+  printf("Done: save image to file...\ntime: %f\n", time_res);
   printf("%d cells found \n", cell_positions[0][0]);
 }
 
@@ -623,6 +645,7 @@ void benchmark()
   int missed_cells = 0;
   for (int i = 0; i < 35; i++)
   {
+    clock_t s = clock();
     cell_positions[0][0] = 0;
     printf("Processing file: %s\n", args[i]);
 
@@ -631,6 +654,9 @@ void benchmark()
 
     cell_detection(args[i], output_path, 0);
     missed_cells += abs(300 - cell_positions[0][0]);
+    clock_t e = clock();
+    double time_used = e - s;
+    printf("time: %f ms\n", time_used * 1000.0 / CLOCKS_PER_SEC);
     if (cell_positions[0][0] < 295 || cell_positions[0][0] > 305)
     {
       printf("FAILED, %d \n\n\n", 300 - cell_positions[0][0]);
