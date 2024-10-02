@@ -575,7 +575,7 @@ void cell_detection(char *input_path, char *output_path, char print_steps)
     }
 
     // Detect cells
-    printf("----Detection time----");
+    printf("\n----Detection time----\n");
     clock_t sd = clock();
     detect(processed_image);
     clock_t ed = clock();
