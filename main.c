@@ -534,23 +534,23 @@ void cell_detection(char *input_path, char *output_path, char print_steps)
   read_bitmap(input_path, input_image);
   clock_t e = clock();
   double time_res = e - s;
-  printf("Done: reading bitmap...\ntime: %f\n", time_res);
+  printf("Done: reading bitmap...\ntime: %f\n", time_res * 1000.0 / CLOCKS_PER_SEC);
   
   printf("Turning image to greyscale...");
   s = clock();
   rgb_to_greyscale(input_image, processed_image);
   e = clock();
   time_res = e - s;
-  printf("Done: turning image to greyscale...\ntime: %f\n", time_res);
+  printf("Done: turning image to greyscale...\ntime: %f\n", time_res * 1000.0 / CLOCKS_PER_SEC);
 
   // Do stuff
+  s = clock();
   unsigned char threshold = get_otsu_threshold(processed_image) + THRESHOLD_OFFSET;
   printf("Apply Threshold: %d\n", threshold); // TODO: Remove
-  s = clock();
   apply_threshold(processed_image, threshold);
   e = clock();
   time_res = e - s;
-  printf("Done: apply threshold...\ntime: %f\n", time_res);
+  printf("Done: apply threshold...\ntime: %f\n", time_res * 1000.0 / CLOCKS_PER_SEC);
   int steps = 0;
 
   // Save image before erosion
@@ -575,11 +575,16 @@ void cell_detection(char *input_path, char *output_path, char print_steps)
     }
 
     // Detect cells
+    printf("----Detection time----");
+    clock_t sd = clock();
     detect(processed_image);
+    clock_t ed = clock();
+    double resd = ed - sd;
+    printf("----Done: detect----\ntime: %f\n", resd * 1000.0 / CLOCKS_PER_SEC);
   }
   e = clock();
   time_res = e - s;
-  printf("Done: erode...\ntime: %f\n", time_res);
+  printf("Done: erode...\ntime: %f\n", time_res * 1000.0 / CLOCKS_PER_SEC);
   // Save image to file
   printf("Save image to file...");
   s = clock();
@@ -590,7 +595,7 @@ void cell_detection(char *input_path, char *output_path, char print_steps)
   write_bitmap(input_image, output_path);
   e = clock();
   time_res = e - s;
-  printf("Done: save image to file...\ntime: %f\n", time_res);
+  printf("Done: save image to file...\ntime: %f\n", time_res * 1000.0 / CLOCKS_PER_SEC);
   printf("%d cells found \n", cell_positions[0][0]);
 }
 
