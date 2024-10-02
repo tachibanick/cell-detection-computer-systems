@@ -22,9 +22,9 @@
 // prints step by step
 #define PRINT_CELL_DETECTION 0
 // ratio between how many cells inside detection to in the filtration layer
-#define RATIO_INSIDE_OUT 3
+#define RATIO_INSIDE_OUT 70
 // how many cells must be at least detected inside the detection layer
-#define MIN_INSIDE_CELLS 87
+#define MIN_INSIDE_CELLS 2
 
 // Used for time analysis
 clock_t start, end;

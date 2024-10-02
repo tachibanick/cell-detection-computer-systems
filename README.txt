@@ -18,3 +18,9 @@ The folder 'results_example' provides you with some example images obtained by r
 
 The folder 'samples' provides you with sample images for the 3 different levels of detection difficulty: easy, medium, and hard. Here you can also find the level 'impossible'. This level of difficulty is not part of the assignment. It is here just in case you really want to challenge your algorithm ;-)
 
+
+-----------------------
+README FROM STUDENTS
+-----------------------
+benchmarking (running it on all 35 images) is done by:
+    ./main.exe
