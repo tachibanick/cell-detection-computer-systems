@@ -333,6 +333,7 @@ int _get_height(unsigned char *file_byte_contents)
 
 unsigned int _get_depth(unsigned char *file_byte_contents)
 {
+    return (_get_int_from_buffer(DEPTH_BYTES, DEPTH_OFFSET, file_byte_contents)) & 0xFF;
     if (_get_int_from_buffer(DEPTH_BYTES, DEPTH_OFFSET, file_byte_contents) == 32 || _get_int_from_buffer(DEPTH_BYTES, DEPTH_OFFSET, file_byte_contents) == 24)
     {
         return _get_int_from_buffer(DEPTH_BYTES, DEPTH_OFFSET, file_byte_contents);

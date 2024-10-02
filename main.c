@@ -430,28 +430,31 @@ void detect(unsigned char processed_image[BMP_WIDTH][BMP_HEIGHT])
   {
     for (int y = 0; y < BMP_HEIGHT; y++)
     {
-      if (processed_image[x][y])
+      for (int ratio_increment = 10 + RATIO_INSIDE_OUT; ratio_increment > 0; ratio_increment--)
       {
-        int surrounding_cells = detect_around(processed_image, x, y);
-        int inside_cells = count_inside(processed_image, x, y);
-        if (surrounding_cells && inside_cells / surrounding_cells < RATIO_INSIDE_OUT || inside_cells < MIN_INSIDE_CELLS)
+        if (processed_image[x][y])
         {
-          continue;
-        }
-        else
-        {
-          remove_cell(processed_image, x, y);
-          cell_positions[0][0] += 1;
-          cell_positions[cell_positions[0][0]][0] = x + 5;
-          cell_positions[cell_positions[0][0]][1] = y + 2;
-
-          if (PRINT_CELL_DETECTION)
+          int surrounding_cells = detect_around(processed_image, x, y);
+          int inside_cells = count_inside(processed_image, x, y);
+          if ((surrounding_cells && inside_cells / surrounding_cells < (RATIO_INSIDE_OUT + ratio_increment)) || inside_cells < MIN_INSIDE_CELLS)
           {
-            printf("Cell #%d detected at (%d, %d)\n", cell_positions[0][0], x, y);
-            char filename[100];
-            greyscale_to_rgb(processed_image, output_image);
-            snprintf(filename, 100, "detection_%d_out.bmp", cell_positions[0][0]);
-            write_bitmap(output_image, filename);
+            continue;
+          }
+          else
+          {
+            remove_cell(processed_image, x, y);
+            cell_positions[0][0] += 1;
+            cell_positions[cell_positions[0][0]][0] = x + 5;
+            cell_positions[cell_positions[0][0]][1] = y + 2;
+
+            if (PRINT_CELL_DETECTION)
+            {
+              printf("Cell #%d detected at (%d, %d)\n", cell_positions[0][0], x, y);
+              char filename[100];
+              greyscale_to_rgb(processed_image, output_image);
+              snprintf(filename, 100, "detection_%d_out.bmp", cell_positions[0][0]);
+              write_bitmap(output_image, filename);
+            }
           }
         }
       }
