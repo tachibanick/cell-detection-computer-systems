@@ -654,7 +654,7 @@ int main(int argc, char **argv)
   // argv[2] is the second command line argument (output image)
 
   // Checking that 2 arguments are passed
-  if (argc == 2)
+  if (argc == 1)
   {
     start = clock();
     benchmark();
